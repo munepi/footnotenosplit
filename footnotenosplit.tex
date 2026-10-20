@@ -1,0 +1,157 @@
+%% footnotenosplit.tex -- documentation for the footnotenosplit package
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%% License: LPPL 1.3c or later
+%%
+%% Build: pdflatex footnotenosplit.tex (twice)
+\documentclass{article}
+\usepackage[margin=28mm]{geometry}
+\usepackage{xcolor}
+\usepackage[colorlinks, allcolors=blue!50!black]{hyperref}
+\newcommand*\fnsversion{v1.0 (2026/10/20)}
+\newcommand*\cs[1]{\texttt{\char`\\#1}}
+\newcommand*\pkg[1]{\textsf{#1}}
+
+\title{The \pkg{footnotenosplit} package\\
+  \large Suppress orphan footnote rules when footnotes are not allowed to split}
+\author{Munehiro Yamamoto\\
+  \url{https://github.com/munepi/footnotenosplit}}
+\date{\fnsversion}
+
+\begin{document}
+\maketitle
+
+\section{The problem}
+
+Setting \cs{interfootnotelinepenalty}\texttt{=10000} keeps footnote
+text from being split across pages: a footnote that does not fit on the
+current page is moved to the next page as a whole.  This policy is
+common in book production, but it has two side effects.
+
+\begin{enumerate}
+\item The original page may end with a \emph{lone} \cs{footnoterule}
+  (plus the \cs{skip}\cs{footins} space) with \emph{no footnote text
+  below it}.
+\item The footnote moved to the next page gets only \cs{splittopskip}
+  ($=$ \cs{footnotesep}) above its first line, so it sits closer to the
+  rule than a normal footnote does.
+\end{enumerate}
+
+\noindent
+Schematically, the bottom of the page where the footnote call sits:
+
+\begin{center}
+\newcommand*\pagebottomdemo[2]{%
+  \begin{minipage}[t]{0.46\linewidth}
+    \centering
+    \fbox{\begin{minipage}[t]{0.88\linewidth}
+      \footnotesize
+      \ldots{} filler text filler text filler text\\
+      the reference line sits here\textsuperscript{2}\\[4pt]
+      #1%
+    \end{minipage}}\\[4pt]
+    {\footnotesize(#2)}%
+  \end{minipage}}%
+\pagebottomdemo{\rule{0.6\linewidth}{0.4pt}\\[8pt]\mbox{}}%
+  {without \pkg{footnotenosplit}: a lone rule}%
+\hfill
+\pagebottomdemo{\mbox{}\\[8pt]\mbox{}}%
+  {with \pkg{footnotenosplit}: no rule}%
+\end{center}
+
+\paragraph{Why it happens.}
+When the footnote insertion begins with vertical material---typically a
+leading \cs{kern} at the top of \cs{@makefntext}, as in many
+book-production classes---and the page bottom has stretch
+(\cs{raggedbottom}), \TeX's page builder ``splits'' the unsplittable
+insertion at its very top.  The page then keeps an \emph{empty}
+\cs{box}\cs{footins} that contains only that leading kern, and the
+\LaTeX{} output routine, which only tests \cs{ifvoid}\cs{footins},
+duly typesets \cs{footnoterule} above the empty box.  The phenomenon is
+a property of \TeX's page builder and the \LaTeX{} output routine: it
+occurs with any engine (pdf\LaTeX, Lua\LaTeX, Xe\LaTeX, (u)p\LaTeX)
+and any language.
+
+\section{What the package does}
+
+\begin{enumerate}
+\item At the start of the output routine, if
+  $\cs{ht}\cs{footins} < \cs{footnotesep}$ (i.e.\ the footnote box
+  holds no actual footnote line), \cs{box}\cs{footins} is discarded,
+  so neither \cs{footnoterule} nor \cs{skip}\cs{footins} is emitted.
+  The footnote itself is typeset normally on the next page.
+\item \cs{splittopskip} inside \cs{@footnotetext}
+  (\cs{H@@footnotetext} when \pkg{hyperref} is loaded) is patched to
+  $\cs{footnotesep} + \cs{footnotetopkern}$, so that the moved footnote
+  gets the same visual space below the rule as a normal footnote.
+\end{enumerate}
+
+\section{Usage}
+
+\begin{verbatim}
+\usepackage{footnotenosplit}
+
+% If your class's \@makefntext starts with "\kern <dimen>",
+% set \footnotetopkern to that dimension and replace the \kern:
+\footnotetopkern=2pt
+\makeatletter
+\renewcommand\@makefntext[1]{\kern\footnotetopkern ... #1}
+\makeatother
+\end{verbatim}
+
+\noindent
+The dimen register \cs{footnotetopkern} (default: \texttt{0pt}) tells
+the package how much vertical material \cs{@makefntext} puts above the
+first footnote line; it is added to \cs{splittopskip} for footnotes
+moved to the next page.
+
+\paragraph{Option \texttt{nopenalty}.}
+By default the package sets
+\cs{interfootnotelinepenalty}\texttt{=}\cs{@M}.  If your class already
+sets it, or you want to manage it yourself, load the package with
+\verb|\usepackage[nopenalty]{footnotenosplit}|.
+
+\section{Implementation notes}
+
+The empty-box test is engine-independent, but where to hook it is not,
+so \pkg{footnotenosplit.sty} dispatches to one of two implementation
+files (do not load them directly):
+
+\begin{description}
+\item[\pkg{footnotenosplit-latex.sty}] for \LaTeX{} with the
+  socket-based \cs{@makecol} (\LaTeX2e 2025-06-01 or later; pdf\LaTeX,
+  Lua\LaTeX, Xe\LaTeX, \dots).  It adds the test to the
+  \texttt{build/column/before} hook, executed at the very beginning of
+  \cs{@makecol}; the subsequent \cs{@outputbox@appendfootnotes} then
+  sees a void \cs{footins} and emits neither \cs{footnoterule} nor
+  \cs{skip}\cs{footins}.
+\item[\pkg{footnotenosplit-ptex.sty}] for (u)p\LaTeX, whose
+  \texttt{plcore.ltx} overrides \cs{@makecol} with a pre-socket
+  definition.  It patches that \cs{@makecol} directly (via
+  \pkg{etoolbox}'s \cs{patchcmd}).
+\end{description}
+
+On an older \LaTeX{} kernel (before 2025-06-01) without the socket
+mechanism, the package issues a warning and only applies the
+\cs{splittopskip} patch.
+
+\section{Tests}
+
+The repository ships \texttt{test-latex.tex} (pdf\LaTeX/Lua\LaTeX/%
+Xe\LaTeX) and \texttt{test-ptex.tex} ((u)p\LaTeX{} $+$
+\texttt{dvipdfmx}), which reproduce the lone rule and verify its
+suppression, plus \texttt{test-latex-show.tex} and
+\texttt{test-ptex-show.tex}, which dump the patched macros to the log.
+See the comments in each file.
+
+\section{License}
+
+This package is licensed under the conditions of the \LaTeX{} Project
+Public License, either version~1.3c of this license or any later
+version.
+
+\medskip
+\noindent
+Copyright \copyright{} 2026 Munehiro Yamamoto
+
+\end{document}
