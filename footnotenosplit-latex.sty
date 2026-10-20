@@ -1,0 +1,41 @@
+%%
+%% footnotenosplit-latex.sty
+%% =========================
+%% The implementation of footnotenosplit.sty for LaTeX with the
+%% socket-based \@makecol (LaTeX2e 2025-06-01 or later; pdfLaTeX,
+%% LuaLaTeX, XeLaTeX, ...), loaded by the main package; do not load
+%% this file directly.
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%%
+%% This package is licensed under the conditions of the LaTeX Project
+%% Public License, either version 1.3c of this license or (at your
+%% option) any later version.  The latest version of this license is in
+%%   https://www.latex-project.org/lppl.txt
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Munehiro Yamamoto.
+%%
+%% This file uses the build/column/before hook, executed at the very
+%% beginning of \@makecol, to discard an "empty" \box\footins
+%% (\ht\footins < \footnotesep, i.e. no actual footnote line).  The
+%% subsequent \@outputbox@appendfootnotes then sees a void \footins and
+%% emits neither \footnoterule nor \skip\footins.
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{footnotenosplit-latex}
+  [2026/10/20 v1.0 footnotenosplit implementation for socket-based LaTeX kernels]
+
+\@ifpackageloaded{footnotenosplit}{}{%
+  \PackageError{footnotenosplit-latex}%
+    {Do not load this file directly}%
+    {Load footnotenosplit.sty instead.}}
+
+\AddToHook{build/column/before}{%
+  \ifvoid\footins\else
+    \ifdim\ht\footins<\footnotesep
+      \fns@discard@emptyfootins
+    \fi
+  \fi}
+
+\endinput

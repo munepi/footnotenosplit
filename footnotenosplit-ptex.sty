@@ -1,0 +1,43 @@
+%%
+%% footnotenosplit-ptex.sty
+%% ========================
+%% The (u)pLaTeX implementation of footnotenosplit.sty, loaded by the
+%% main package; do not load this file directly.
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%%
+%% This package is licensed under the conditions of the LaTeX Project
+%% Public License, either version 1.3c of this license or (at your
+%% option) any later version.  The latest version of this license is in
+%%   https://www.latex-project.org/lppl.txt
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Munehiro Yamamoto.
+%%
+%% This file patches the \@makecol of plcore.ltx so that an "empty"
+%% \box\footins (\ht\footins < \footnotesep, i.e. no actual footnote
+%% line) is discarded and neither \footnoterule nor \skip\footins is
+%% emitted.
+%%
+\NeedsTeXFormat{pLaTeX2e}
+\ProvidesPackage{footnotenosplit-ptex}
+  [2026/10/20 v1.0 footnotenosplit implementation for (u)pLaTeX]
+
+\@ifpackageloaded{footnotenosplit}{}{%
+  \PackageError{footnotenosplit-ptex}%
+    {Do not load this file directly}%
+    {Load footnotenosplit.sty instead.}}
+
+\patchcmd{\@makecol}%
+  {\ifvoid\footins\else\setbox\@outputbox}%
+  {\ifvoid\footins\else
+   \ifdim\ht\footins<\footnotesep
+     \fns@discard@emptyfootins
+   \else\setbox\@outputbox}%
+  {\patchcmd{\@makecol}%
+     {\let\@textbottom\relax\fi\ifvbox\@kludgeins}%%<= pLaTeX's \@makecol
+     {\let\@textbottom\relax\fi\fi\ifvbox\@kludgeins}%
+     {}{\fns@warning{Failed to patch \string\@makecol (2)}}}%
+  {\fns@warning{Failed to patch \string\@makecol (1)}}
+
+\endinput

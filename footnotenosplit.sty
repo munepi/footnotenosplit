@@ -1,0 +1,109 @@
+%%
+%% footnotenosplit.sty
+%% ===================
+%% Suppress orphan footnote rules when footnotes are not allowed to split.
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%%
+%% This package is licensed under the conditions of the LaTeX Project
+%% Public License, either version 1.3c of this license or (at your
+%% option) any later version.  The latest version of this license is in
+%%   https://www.latex-project.org/lppl.txt
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Munehiro Yamamoto.
+%%
+%% Background
+%%   Setting \interfootnotelinepenalty=\@M keeps footnote text from being
+%%   split across pages: a footnote that does not fit on the current page
+%%   is moved to the next page as a whole.  When the footnote insertion
+%%   begins with vertical material such as a leading \kern -- as
+%%   \@makefntext does in many book-production classes -- TeX's page
+%%   builder then leaves an "empty" \box\footins (one that contains only
+%%   that leading \kern) on the original page, so that
+%%     (1) the original page ends with a lone \footnoterule (plus the
+%%         \skip\footins space) with no footnote text below it, and
+%%     (2) the footnote moved to the next page gets only
+%%         \splittopskip (= \footnotesep) above its first line, i.e. it
+%%         sits closer to the rule than a normal footnote does, by the
+%%         amount of the leading \kern.
+%%
+%% What this package does
+%%   (1) If \ht\footins < \footnotesep (i.e. \box\footins holds no actual
+%%       footnote line), \box\footins is discarded, so that neither
+%%       \footnoterule nor \skip\footins is emitted; the footnote itself
+%%       is typeset normally on the next page.  The implementation
+%%       differs by engine, so this file dispatches to one of:
+%%         * footnotenosplit-ptex.sty  : (u)pLaTeX; patches the \@makecol
+%%                                       of plcore.ltx
+%%         * footnotenosplit-latex.sty : LaTeX with the socket-based
+%%                                       \@makecol (LaTeX2e 2025-06-01 or
+%%                                       later; pdfLaTeX, LuaLaTeX,
+%%                                       XeLaTeX, ...); uses the
+%%                                       build/column/before hook
+%%   (2) \splittopskip inside \@footnotetext (\H@@footnotetext when
+%%       hyperref is loaded) is patched to
+%%       \footnotesep + \footnotetopkern.  This is engine-independent
+%%       and done in this file.
+%%
+%% Usage
+%%   \usepackage{footnotenosplit}
+%%   \footnotetopkern=2.6pt   %% the \kern used at the top of
+%%                            %% \@makefntext (default: 0pt)
+%%   \renewcommand\@makefntext[1]{\kern\footnotetopkern ... #1}
+%%   If your class's \@makefntext starts with "\kern <dimen>", set
+%%   \footnotetopkern to that dimension and replace the \kern with
+%%   \kern\footnotetopkern.
+%%
+%% Option
+%%   nopenalty : do not touch \interfootnotelinepenalty (by default this
+%%               package sets it to \@M)
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{footnotenosplit}
+  [2026/10/20 v1.0 suppress orphan footnote rule when footnotes are not split]
+
+\RequirePackage{etoolbox}
+
+\newif\if@fns@penalty \@fns@penaltytrue
+\DeclareOption{nopenalty}{\@fns@penaltyfalse}
+\ProcessOptions\relax
+
+\if@fns@penalty
+  \interfootnotelinepenalty\@M\relax
+\fi
+
+\newdimen\footnotetopkern \footnotetopkern\z@
+
+\def\fns@warning{\PackageWarningNoLine{footnotenosplit}}
+
+%% (1) Discard an "empty" \box\footins (implementation is per-engine)
+\def\fns@discard@emptyfootins{\setbox\footins\box\voidb@x}
+\ifdefined\ptexversion
+  \def\fns@engine{ptex}%%<= pTeX family ((u)pLaTeX)
+\else\ifdefined\@outputbox@appendfootnotes
+  \def\fns@engine{latex}%%<= socket-based \@makecol (LaTeX2e 2025-06-01+)
+\else
+  \let\fns@engine\relax
+  \fns@warning{Neither pTeX's \string\@makecol\space nor socket-based
+    \string\@makecol\space found\MessageBreak
+    (pLaTeX2e or LaTeX2e 2025-06-01 or later required);\MessageBreak
+    orphan footnote rules will not be suppressed}%
+\fi\fi
+\ifx\fns@engine\relax\else
+  \RequirePackage{footnotenosplit-\fns@engine}%
+\fi
+
+%% (2) Align the space above a moved footnote with that of a normal one
+\AtBeginDocument{%
+  \@ifundefined{H@@footnotetext}{%
+    \patchcmd{\@footnotetext}{\splittopskip\footnotesep}%
+      {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
+      {}{\fns@warning{Failed to patch \string\@footnotetext}}%
+  }{%
+    \patchcmd{\H@@footnotetext}{\splittopskip\footnotesep}%
+      {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
+      {}{\fns@warning{Failed to patch \string\H@@footnotetext}}%
+  }}
+
+\endinput
