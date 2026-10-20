@@ -1,0 +1,60 @@
+%% test-ptex.tex
+%% =============
+%% Typesetting test for (u)pLaTeX: a long footnote near the page bottom
+%% is moved to the next page as a whole.
+%%
+%%   uplatex test-ptex.tex && dvipdfmx test-ptex
+%%   platex  test-ptex.tex && dvipdfmx test-ptex
+%% The class is selected automatically (platex: jbook / uplatex: ujbook).
+%% Since current pLaTeX also runs on the e-upTeX engine, the format is
+%% detected via the internal kanji encoding.
+%%
+%% The number of filler lines is set by \FILLN (default 68, which
+%% triggers the phenomenon on TeX Live 2026; scan nearby values if the
+%% layout changes with your TeX distribution):
+%%   uplatex -jobname=test-ptex-n70 "\def\FILLN{70}\input test-ptex.tex"
+%% For a control build without the package (only
+%% \interfootnotelinepenalty=10000):
+%%   uplatex -jobname=test-ptex-off "\def\NOPKG{1}\input test-ptex.tex"
+%%
+%% What to check:
+%%   * The ordinary footnote (page 1) is typeset as usual.
+%%   * At the trigger boundary the long footnote moves to the next page;
+%%     in the control build the original page ends with a lone
+%%     \footnoterule (no footnote text below it), while with the package
+%%     the lone rule disappears.
+%%
+%% The phenomenon requires \raggedbottom (or bottom glue with stretch)
+%% and an \@makefntext that starts with vertical material (a leading
+%% \kern), as in many book-production classes.
+\ifnum\jis"2121="3000
+  \documentclass{ujbook}
+\else
+  \documentclass{jbook}
+\fi
+\ifdefined\NOPKG
+  \interfootnotelinepenalty=10000
+\else
+  \usepackage{footnotenosplit}
+  \footnotetopkern=2pt
+\fi
+\raggedbottom
+\makeatletter
+\renewcommand\@makefntext[1]{%
+  \kern 2\p@
+  \parindent 1em\noindent
+  \hb@xt@1.8em{\hss\@makefnmark}#1}
+\makeatother
+\ifdefined\FILLN\else\def\FILLN{68}\fi
+\begin{document}
+\chapter{Test}
+Start of the test\footnote{An ordinary footnote that fits on the same page.}.
+\newcount\mycount \mycount=0
+\loop
+  \advance\mycount by 1
+  This is a filler line of plain English text to fill the page.\par
+\ifnum\mycount<\FILLN \repeat
+REFLINE is the reference line at the very bottom of this page\footnote{LONGNOTE: this footnote is quite long, so it cannot fit on the current page and should move to the next page as a whole. This footnote is quite long, so it cannot fit on the current page and should move to the next page as a whole.}.
+
+Text on the next page.
+\end{document}

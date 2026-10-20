@@ -1,0 +1,33 @@
+%% test-ptex-show.tex
+%% ==================
+%% Patch-status check for (u)pLaTeX (inspect the log, not the typeset
+%% output).
+%%
+%%   platex  -interaction=nonstopmode test-ptex-show.tex
+%%   uplatex -interaction=nonstopmode test-ptex-show.tex
+%%
+%% What to check in the log:
+%%   * footnotenosplit-ptex is loaded.
+%%   * The \meaning after ===MAKECOL=== contains the branch
+%%       \ifdim \ht \footins <\footnotesep \fns@discard@emptyfootins \else
+%%     and the matching extra \fi \fi.
+%%   * The \meaning after ===FOOTNOTETEXT=== contains
+%%       \splittopskip \dimexpr \footnotesep +\footnotetopkern
+%%   * ===IFP===10000 (\interfootnotelinepenalty=\@M)
+%%   * No "Failed to patch" warnings.
+%%
+%% The class is selected automatically (platex: jbook / uplatex: ujbook).
+%% Since current pLaTeX also runs on the e-upTeX engine, the format is
+%% detected via the internal kanji encoding.
+\ifnum\jis"2121="3000
+  \documentclass{ujbook}
+\else
+  \documentclass{jbook}
+\fi
+\usepackage{footnotenosplit}
+\begin{document}
+\makeatletter
+\typeout{===MAKECOL===^^J\meaning\@makecol^^J===FOOTNOTETEXT===^^J\meaning\@footnotetext^^J===IFP===\the\interfootnotelinepenalty===END===}
+\makeatother
+test\footnote{footnote}
+\end{document}

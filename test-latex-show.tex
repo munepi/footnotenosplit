@@ -1,0 +1,25 @@
+%% test-latex-show.tex
+%% ===================
+%% Patch-status check for pdfLaTeX/LuaLaTeX/XeLaTeX (inspect the log,
+%% not the typeset output).
+%%
+%%   pdflatex -interaction=nonstopmode test-latex-show.tex
+%%   (or lualatex / xelatex)
+%%
+%% What to check in the log:
+%%   * footnotenosplit-latex is loaded.
+%%   * The build/column/before hook (shown by \LogHook) contains the
+%%     code chunk calling \fns@discard@emptyfootins.
+%%   * The \meaning after ===FOOTNOTETEXT=== contains
+%%       \splittopskip \dimexpr \footnotesep +\footnotetopkern
+%%   * ===IFP===10000 (\interfootnotelinepenalty=\@M)
+%%   * No "Failed to patch" warnings.
+\documentclass{book}
+\usepackage{footnotenosplit}
+\begin{document}
+\makeatletter
+\typeout{===FOOTNOTETEXT===^^J\meaning\@footnotetext^^J===IFP===\the\interfootnotelinepenalty===END===}
+\makeatother
+\LogHook{build/column/before}
+test\footnote{footnote}
+\end{document}
