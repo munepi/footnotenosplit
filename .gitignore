@@ -1,0 +1,14 @@
+*.aux
+*.log
+*.out
+*.toc
+*.dvi
+*.synctex.gz
+*-pdflatex.*
+*-lualatex.*
+*-xelatex.*
+*-platex.*
+*-uplatex.*
+footnotenosplit.zip
+*~
+.DS_Store

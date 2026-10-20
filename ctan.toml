@@ -1,0 +1,38 @@
+# ctan.toml -- metadata for "ctango upload".
+# Keys follow the CTAN submission API: https://ctan.org/help/submit
+# uploader/email are taken from ~/.config/ctango/config.toml or git config.
+
+pkg         = "footnotenosplit"
+ctanPath    = "/macros/latex/contrib/footnotenosplit"
+summary     = "Suppress orphan footnote rules when footnotes are not allowed to split"
+description = '''
+<p>
+Setting <code>\interfootnotelinepenalty=10000</code> keeps footnote text
+from being split across pages: a footnote that does not fit on the
+current page is moved to the next page as a whole.  This policy, common
+in book production, can leave a lone <code>\footnoterule</code> with no
+footnote text below it at the bottom of the original page, and the moved
+footnote sits too close to the rule on the next page.  This package
+suppresses both side effects.
+</p>
+<p>
+Supported formats/engines: <code>pdflatex</code>, <code>lualatex</code>,
+<code>xelatex</code> (LaTeX2e 2025-06-01 or later),
+<code>platex</code>, <code>uplatex</code>.
+</p>
+'''
+author      = ["Munehiro Yamamoto"]
+license     = ["lppl1.3c"]
+topic       = ["footnote"]
+# home        = "https://..."
+bugtracker  = ["https://github.com/munepi/footnotenosplit/issues"]
+# support     = "https://..."
+repository  = ["https://github.com/munepi/footnotenosplit"]
+# development = "https://..."
+
+archive     = "footnotenosplit.zip"  # built by "make ctanzip"
+
+# The version is read from this file (\ProvidesPackage / \ProvidesExplPackage).
+# Add pattern = '...' to use your own regular expression (first group = version).
+[version]
+file        = "footnotenosplit.sty"
