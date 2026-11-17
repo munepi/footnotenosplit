@@ -13,6 +13,10 @@
 %% For a control build without the package (only
 %% \interfootnotelinepenalty=10000):
 %%   pdflatex -jobname=test-latex-off "\def\NOPKG{1}\input test-latex.tex"
+%% For a tagged PDF build (\DocumentMetadata{tagging=on}; pdfLaTeX and
+%% LuaLaTeX), optionally with hyperref:
+%%   pdflatex -jobname=test-latex-tagged "\def\TAGGING{1}\input test-latex.tex"
+%%   pdflatex -jobname=test-latex-tagged-hy "\def\TAGGING{1}\def\HYPERREF{1}\input test-latex.tex"
 %%
 %% What to check:
 %%   * The ordinary footnote (page 1) is typeset as usual.
@@ -24,6 +28,7 @@
 %% The phenomenon requires \raggedbottom (or bottom glue with stretch)
 %% and an \@makefntext that starts with vertical material (a leading
 %% \kern), as in many book-production classes.
+\ifdefined\TAGGING \DocumentMetadata{tagging=on}\fi
 \documentclass{book}
 \ifdefined\NOPKG
   \interfootnotelinepenalty=10000
@@ -31,6 +36,7 @@
   \usepackage{footnotenosplit}
   \footnotetopkern=2pt
 \fi
+\ifdefined\HYPERREF \usepackage{hyperref}\fi
 \raggedbottom
 \makeatletter
 \renewcommand\@makefntext[1]{%

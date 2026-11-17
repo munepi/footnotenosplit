@@ -5,21 +5,30 @@
 %%
 %%   pdflatex -interaction=nonstopmode test-latex-show.tex
 %%   (or lualatex / xelatex)
+%% For a tagged PDF build (\DocumentMetadata{tagging=on}; pdfLaTeX and
+%% LuaLaTeX), optionally with hyperref:
+%%   pdflatex -jobname=test-latex-show-tagged "\def\TAGGING{1}\input test-latex-show.tex"
+%%   pdflatex -jobname=test-latex-show-tagged-hy "\def\TAGGING{1}\def\HYPERREF{1}\input test-latex-show.tex"
 %%
 %% What to check in the log:
 %%   * footnotenosplit-latex is loaded.
 %%   * The build/column/before hook (shown by \LogHook) contains the
 %%     code chunk calling \fns@discard@emptyfootins.
-%%   * The \meaning after ===FOOTNOTETEXT=== contains
+%%   * Untagged: the \meaning after ===FOOTNOTETEXT=== contains
 %%       \splittopskip \dimexpr \footnotesep +\footnotetopkern
+%%     Tagged: the fntext/para hook (shown by \LogHook) contains the
+%%     footnotenosplit code chunk setting the same \splittopskip.
 %%   * ===IFP===10000 (\interfootnotelinepenalty=\@M)
 %%   * No "Failed to patch" warnings.
+\ifdefined\TAGGING \DocumentMetadata{tagging=on}\fi
 \documentclass{book}
 \usepackage{footnotenosplit}
+\ifdefined\HYPERREF \usepackage{hyperref}\fi
 \begin{document}
 \makeatletter
 \typeout{===FOOTNOTETEXT===^^J\meaning\@footnotetext^^J===IFP===\the\interfootnotelinepenalty===END===}
 \makeatother
 \LogHook{build/column/before}
+\LogHook{fntext/para}
 test\footnote{footnote}
 \end{document}
