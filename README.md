@@ -12,9 +12,10 @@ This happens with any engine — it is a property of TeX's page builder and the 
 The footnotenosplit package suppresses both side effects:
 
 1. If `\ht\footins < \footnotesep` (the footnote box holds no actual footnote line), the box is discarded, so neither `\footnoterule` nor `\skip\footins` is emitted. The footnote itself is typeset normally on the next page.
-2. `\splittopskip` inside `\@footnotetext` (or `\H@@footnotetext` when hyperref is loaded) is patched to `\footnotesep + \footnotetopkern`.
+2. `\splittopskip` inside `\@footnotetext` (or `\H@@footnotetext` when hyperref is loaded) is patched to `\footnotesep + \footnotetopkern`. In tagged PDF documents (`\DocumentMetadata{tagging=on}`), where the kernel's tagging code replaces `\@footnotetext`, the same value is set in the `fntext/para` hook instead.
 
 * **Supported formats/engines:** pdfLaTeX, LuaLaTeX, XeLaTeX (LaTeX2e 2025-06-01 or later), pLaTeX, upLaTeX
+* **Tagged PDF:** works with `\DocumentMetadata{tagging=on}` (pdfLaTeX, LuaLaTeX)
 
 ## Files
 
@@ -61,6 +62,7 @@ The repository ships four test files:
 
 * `test-latex.tex` (pdfLaTeX/LuaLaTeX/XeLaTeX) and `test-ptex.tex` ((u)pLaTeX + dvipdfmx) reproduce the orphan footnote rule and verify that the package suppresses it. Build a control version without the package via `"\def\NOPKG{1}\input test-latex.tex"` and compare the page where the long footnote reference sits at the very bottom. The filler-line count `\FILLN` may need rescanning on TeX distributions other than TeX Live 2026.
 * `test-latex-show.tex` / `test-ptex-show.tex` dump the patched macros to the log for a quick patch-status check (`make test` greps these).
+* The pdfLaTeX/LuaLaTeX tests also run as tagged PDF via `"\def\TAGGING{1}\input test-latex.tex"` (add `\def\HYPERREF{1}` for hyperref); `make test` covers these variants.
 
 ## Repository
 

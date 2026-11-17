@@ -8,7 +8,7 @@
 \usepackage[margin=28mm]{geometry}
 \usepackage{xcolor}
 \usepackage[colorlinks, allcolors=blue!50!black]{hyperref}
-\newcommand*\fnsversion{v1.0 (2026/10/20)}
+\newcommand*\fnsversion{v1.1 (2026/11/17)}
 \newcommand*\cs[1]{\texttt{\char`\\#1}}
 \newcommand*\pkg[1]{\textsf{#1}}
 
@@ -86,6 +86,14 @@ and any language.
   gets the same visual space below the rule as a normal footnote.
 \end{enumerate}
 
+\paragraph{Tagged PDF.}
+The package also works with \verb|\DocumentMetadata{tagging=on}|
+(pdf\LaTeX{} and Lua\LaTeX).  There, the \LaTeX{} kernel's tagging
+code replaces \cs{@footnotetext}, so the package sets the adjusted
+\cs{splittopskip} in the \texttt{fntext/para} hook instead of patching
+\cs{@footnotetext}.  The box discarded in item~1 is empty in tagged
+documents as well, so the structure tree is not affected.
+
 \section{Usage}
 
 \begin{verbatim}
@@ -142,6 +150,8 @@ Xe\LaTeX) and \texttt{test-ptex.tex} ((u)p\LaTeX{} $+$
 \texttt{dvipdfmx}), which reproduce the lone rule and verify its
 suppression, plus \texttt{test-latex-show.tex} and
 \texttt{test-ptex-show.tex}, which dump the patched macros to the log.
+The pdf\LaTeX/Lua\LaTeX{} tests also have tagged PDF variants
+(\verb|\def\TAGGING{1}|, optionally with \verb|\def\HYPERREF{1}|).
 See the comments in each file.
 
 \section{License}
