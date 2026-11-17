@@ -43,8 +43,10 @@
 %%                                       build/column/before hook
 %%   (2) \splittopskip inside \@footnotetext (\H@@footnotetext when
 %%       hyperref is loaded) is patched to
-%%       \footnotesep + \footnotetopkern.  This is engine-independent
-%%       and done in this file.
+%%       \footnotesep + \footnotetopkern.  When the latex-lab footnote
+%%       code is active (tagged PDF, \DocumentMetadata{tagging=on}),
+%%       the same value is set in the fntext/para hook instead.  This is
+%%       engine-independent and done in this file.
 %%
 %% Usage
 %%   \usepackage{footnotenosplit}
@@ -61,7 +63,7 @@
 %%
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{footnotenosplit}
-  [2026/10/20 v1.0 suppress orphan footnote rule when footnotes are not split]
+  [2026/11/17 v1.1 suppress orphan footnote rule when footnotes are not split]
 
 \RequirePackage{etoolbox}
 
@@ -95,15 +97,24 @@
 \fi
 
 %% (2) Align the space above a moved footnote with that of a normal one
+%%     The latex-lab footnote code (tagged PDF) replaces \@footnotetext
+%%     at begin document with \fnote_footnotetext:n, which cannot be
+%%     patched with \patchcmd but runs the fntext/para hook right after
+%%     setting \splittopskip, inside the \insert group.
 \AtBeginDocument{%
-  \@ifundefined{H@@footnotetext}{%
-    \patchcmd{\@footnotetext}{\splittopskip\footnotesep}%
-      {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
-      {}{\fns@warning{Failed to patch \string\@footnotetext}}%
+  \@ifundefined{fnote_footnotetext:n}{%
+    \@ifundefined{H@@footnotetext}{%
+      \patchcmd{\@footnotetext}{\splittopskip\footnotesep}%
+        {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
+        {}{\fns@warning{Failed to patch \string\@footnotetext}}%
+    }{%
+      \patchcmd{\H@@footnotetext}{\splittopskip\footnotesep}%
+        {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
+        {}{\fns@warning{Failed to patch \string\H@@footnotetext}}%
+    }%
   }{%
-    \patchcmd{\H@@footnotetext}{\splittopskip\footnotesep}%
-      {\splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
-      {}{\fns@warning{Failed to patch \string\H@@footnotetext}}%
+    \AddToHook{fntext/para}[footnotenosplit]{%
+      \splittopskip\dimexpr\footnotesep+\footnotetopkern\relax}%
   }}
 
 \endinput
