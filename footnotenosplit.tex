@@ -60,7 +60,7 @@ Schematically, the bottom of the page where the footnote call sits:
 \end{center}
 
 \paragraph{Why it happens.}
-When the footnote insertion begins with vertical material---typically a
+When the footnote insertion begins with vertical material---a
 leading \cs{kern} at the top of \cs{@makefntext}, as in many
 book-production classes---and the page bottom has stretch
 (\cs{raggedbottom}), \TeX's page builder ``splits'' the unsplittable
@@ -122,7 +122,7 @@ sets it, or you want to manage it yourself, load the package with
 \section{Implementation notes}
 
 The empty-box test is engine-independent, but where to hook it is not,
-so \pkg{footnotenosplit.sty} dispatches to one of two implementation
+so \pkg{footnotenosplit.sty} dispatches to one of two engine-specific
 files (do not load them directly):
 
 \begin{description}
@@ -135,8 +135,8 @@ files (do not load them directly):
   \cs{skip}\cs{footins}.
 \item[\pkg{footnotenosplit-ptex.sty}] for (u)p\LaTeX, whose
   \texttt{plcore.ltx} overrides \cs{@makecol} with a pre-socket
-  definition.  It patches that \cs{@makecol} directly (via
-  \pkg{etoolbox}'s \cs{patchcmd}).
+  definition.  It patches that \cs{@makecol} with
+  \pkg{etoolbox}'s \cs{patchcmd}.
 \end{description}
 
 On an older \LaTeX{} kernel (before 2025-06-01) without the socket

@@ -24,13 +24,13 @@
 %%     (1) the original page ends with a lone \footnoterule (plus the
 %%         \skip\footins space) with no footnote text below it, and
 %%     (2) the footnote moved to the next page gets only
-%%         \splittopskip (= \footnotesep) above its first line, i.e. it
+%%         \splittopskip (= \footnotesep) above its first line and
 %%         sits closer to the rule than a normal footnote does, by the
 %%         amount of the leading \kern.
 %%
 %% What this package does
 %%   (1) If \ht\footins < \footnotesep (i.e. \box\footins holds no actual
-%%       footnote line), \box\footins is discarded, so that neither
+%%       footnote line), \box\footins is discarded and neither
 %%       \footnoterule nor \skip\footins is emitted; the footnote itself
 %%       is typeset normally on the next page.  The implementation
 %%       differs by engine, so this file dispatches to one of:
@@ -38,8 +38,8 @@
 %%                                       of plcore.ltx
 %%         * footnotenosplit-latex.sty : LaTeX with the socket-based
 %%                                       \@makecol (LaTeX2e 2025-06-01 or
-%%                                       later; pdfLaTeX, LuaLaTeX,
-%%                                       XeLaTeX, ...); uses the
+%%                                       later; pdfLaTeX, LuaLaTeX and
+%%                                       XeLaTeX); uses the
 %%                                       build/column/before hook
 %%   (2) \splittopskip inside \@footnotetext (\H@@footnotetext when
 %%       hyperref is loaded) is patched to
